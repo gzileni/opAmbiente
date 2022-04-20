@@ -1,7 +1,6 @@
 {
     "SERVER":"http://openpuglia.org/api7/aria/getAria",
     "CRS": "EPSG:4326",
-    "DAYS": 3,
     "USERNAME_PG": "",
     "PASSWORD_PG": "",
     "POSTGRESQL": "", 

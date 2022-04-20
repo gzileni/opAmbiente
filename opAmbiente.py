@@ -155,12 +155,12 @@ def job():
         city = row[1]['city']
         station = row[1]['station']
         pollution = row[1]['pollution']
-        data = geoRequest(app.config['SERVER'],
+        data = geoRequest(config['SERVER'],
                           city,
                           days,
                           pollution)
         if (data is not None):
-            gdf = geoData(engine, app.config["CRS"], data)
+            gdf = geoData(engine, config["CRS"], data)
             if (gdf is not None):
                 msg = str(datetime.datetime.now()) + '- Nuovi dati di inquinamento per ' + station + \
                     ' per la centralina (' + station + ') e inquinante ' + \
