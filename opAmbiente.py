@@ -140,58 +140,75 @@ def pollution(station):
 # HTTP POST /job
 @app.route('/ambiente/job', methods=['POST'])
 def job():
-    days = request.form['days']
-    engine = getEngine()
-    jobs = load_jobs(engine)
-    jobs_cities = []
-    jobs_cities_nodata = []
-    last_station = ''
-    last_station_nodata = ''
-    result = {
-        "updated": "",
-        "noData": ""
-    }
 
-    for row in jobs.iterrows():
-        city = row[1]['city']
-        station = row[1]['station']
-        pollution = row[1]['pollution']
-        data = geoRequest(config['SERVER'],
-                          city,
-                          days,
-                          pollution)
-        if (data is not None):
-            gdf = geoData(engine, config["CRS"], data)
-            if (gdf is not None):
-                msg = str(datetime.datetime.now()) + '- Nuovi dati di inquinamento per ' + station + \
-                    ' per la centralina (' + station + ') e inquinante ' + \
-                    pollution + ' rilevati dall\'ARPA Puglia'
-                print(gdf.head(5))
-                updatePG(engine, gdf)
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        body = request.json
+        days = body['days']
 
-            if (station != last_station):
-                jobs_cities.append(station)
-                last_station = station
-        else:
-            if (station != last_station_nodata):
-                jobs_cities_nodata.append(station)
-                last_station_nodata = station
+        engine = getEngine()
+        jobs = load_jobs(engine)
+        jobs_cities = []
+        jobs_cities_nodata = []
+        last_station = ''
+        last_station_nodata = ''
+        result = {
+            "updated": "",
+            "noData": ""
+        }
 
-            msg = str(datetime.datetime.now()) + ' - Nessun dato per ' + station + \
-                ' con inquinante ' + pollution + ' negli ultimi ' + str(days) + ' giorni.'
-            print(msg)
-        time.sleep(3)
+        for row in jobs.iterrows():
+            
+            params = {
+                "city": row[1]['city'],
+                "station": row[1]['station'],
+                "pollution": row[1]['pollution'],
+                "days": str(days)
+            }
 
-    if (len(jobs_cities) > 0):
-        msg = str(datetime.datetime.now()) + ' - Nuovi dati di inquinamento per le centraline \n' + str(jobs_cities) + \
-            '\nrilevati dall\'ARPA Puglia negli ultimi ' + str(days) + ' giorni.'
-        telegram_send.send(messages=[msg])
-        result['updated'] = msg
-    
-    if (len(jobs_cities_nodata) > 0):
-        msg = str(datetime.datetime.now()) + ' - Nessun dato di inquinamento per le centraline \n' + str(jobs_cities_nodata) + \
-            '\nrilevati dall\'ARPA Puglia negli ultimi ' + str(days) + ' giorni'
-        telegram_send.send(messages=[msg])
-        result['noData'] = msg
-    
-    return result
+            data = geoRequest(config['SERVER'], params)
+            if (data is not None):
+                gdf = geoData(engine, config["CRS"], data)
+                if (gdf is not None):
+                    msg = str(datetime.datetime.now()) + \
+                          '- Nuovi dati di inquinamento per ' + \
+                          params["station"] + \
+                          ' per la centralina (' + params["station"] + ') e inquinante ' + \
+                          params["pollution"] + ' rilevati dall\'ARPA Puglia'
+                    print(gdf.head(5))
+                    updatePG(engine, gdf)
+
+                if (params["station"] != last_station):
+                    jobs_cities.append(params["station"])
+                    last_station = params["station"]
+            else:
+                if (params["station"] != last_station_nodata):
+                    jobs_cities_nodata.append(params["station"])
+                    last_station_nodata = params["station"]
+
+                msg = str(datetime.datetime.now()) + \
+                    ' - Nessun dato per ' + params["station"] + \
+                    ' con inquinante ' + params["pollution"] + \
+                    ' negli ultimi ' + str(params["days"]) + ' giorni.'
+                print(msg)
+            time.sleep(3)
+
+        if (len(jobs_cities) > 0):
+            msg = str(datetime.datetime.now()) + \
+                  ' - Nuovi dati di inquinamento per le centraline \n' + \
+                  str(jobs_cities) + \
+                  '\nrilevati dall\'ARPA Puglia negli ultimi ' + \
+                  str(params["days"]) + ' giorni.'
+            telegram_send.send(messages=[msg])
+            result['updated'] = msg
+
+        if (len(jobs_cities_nodata) > 0):
+            msg = str(datetime.datetime.now()) + ' - Nessun dato di inquinamento per le centraline \n' + str(jobs_cities_nodata) + \
+                '\nrilevati dall\'ARPA Puglia negli ultimi ' + \
+                str(days) + ' giorni'
+            telegram_send.send(messages=[msg])
+            result['noData'] = msg
+
+        return result
+    else:
+        return 'Content-Type not supported!'

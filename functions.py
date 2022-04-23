@@ -13,7 +13,8 @@ geopandas.options.use_pygeos = False
 def geoRequest(url, params):
     try:
         url = url + '?comune=' + params["city"] + \
-            '&giorni=' + str(params["days"]) + '&inquinante=' + params["pollution"]
+             '&giorni=' + params["days"] + \
+             '&inquinante=' + params["pollution"]
 
         logging.info(str(datetime.now()) + ' - Get fata from ' + url)
 
