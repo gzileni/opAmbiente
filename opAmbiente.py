@@ -1,6 +1,7 @@
 from flask import Flask, request, json
 from geocode import geocode, reverse
-from functions import geoData, geoRequest, nearest, getData, getPollution, updatePG, load_jobs
+from functions import geoData, geoRequest, nearest, getData, getPollution
+from ambiente import updatePG, load_jobs
 
 from sqlalchemy import *
 from sqlalchemy.engine import create_engine
