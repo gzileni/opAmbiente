@@ -176,7 +176,7 @@ def job():
                           ' per la centralina (' + params["station"] + ') e inquinante ' + \
                           params["pollution"] + ' rilevati dall\'ARPA Puglia'
                     print(gdf.head(5))
-                    updatePG(engine, gdf)
+                    updatePG(engine, gdf, params["pollution"], 'arpa')
 
                 if (params["station"] != last_station):
                     jobs_cities.append(params["station"])

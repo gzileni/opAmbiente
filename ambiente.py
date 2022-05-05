@@ -18,10 +18,10 @@ def load_jobs(engine):
 
 # -------------------------------------
 # update database
-def updatePG(engine, gdf):
-    gdf.to_postgis('stations_values',
+def updatePG(engine, gdf, table, schema):
+    gdf.to_postgis(str(table).lower(),
                    engine,
-                   schema='public',
+                   schema=str(schema).lower(),
                    if_exists="append",
                    dtype={'geom': Geometry(geometry_type='POINT', srid=4326)},
                    chunksize=10000)
